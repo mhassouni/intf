@@ -1,0 +1,32 @@
+/**
+ * @description       :
+ * @author            : Michaël Cabaraux
+ * @group             :
+ * @last modified on  : 06-07-2023
+ * @last modified by  : Michaël Cabaraux
+**/
+
+global class Intf_RecursiveValidator {
+    private static boolean alreadyDone = false;
+    private static boolean alreadyDonePricing = false;
+
+    public static boolean isAlreadyDone(){ 
+        return alreadyDone;
+    }
+
+    public static void setAlreadyDone() {  
+        alreadyDone = true;
+    }
+
+    public static void setAlreadyDonePriceSAP() {
+        alreadyDonePricing = true;
+    }
+
+    public static void setNotDone() {  
+        alreadyDone = false;
+    }
+
+    public static void setNotDonePriceSAP() {  
+        alreadyDonePricing = false;
+    }
+}
