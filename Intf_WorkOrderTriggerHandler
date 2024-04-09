@@ -1,0 +1,60 @@
+/**
+ * Created by Michael on 04-03-24.
+ */
+
+public with sharing class Intf_WorkOrderTriggerHandler {
+
+    public without sharing class sendWorkOrderToSAP implements Intf_Framework_Triggers.Handler {
+        public void handle() {
+
+            List<WorkOrder> workOrderToSend = new List<WorkOrder>();
+
+            if (Trigger.isInsert) {
+                workOrderToSend = (List<WorkOrder>)Trigger.new;
+
+            } else {
+                for (WorkOrder wo: (List<WorkOrder>)Trigger.new) {
+                    if (wo.Intf_Sync_Status__c == 'Resend') {
+                        workOrderToSend.add(wo);
+                    }
+                }
+            }
+
+            System.debug('========================== WorkOrderTriggerHandler sendWorkOrderToSAP workOrderToSend#: ' + workOrderToSend.size());
+            if (!workOrderToSend.isEmpty()) {
+                sendWorkOrdersToSAP(workOrderToSend);
+            }
+        }
+    }
+
+    private static void sendWorkOrdersToSAP(List<WorkOrder> workOrders) {
+
+        Set<Id> caseIds = new Set<Id>();
+
+        for (WorkOrder wo : workOrders) {
+            if (wo.CaseId != null) { caseIds.add(wo.CaseId); }
+        }
+
+        Map<Id, Case> casesByIds = new Map<Id, Case>([
+                SELECT Id, Asset.Name, Contact_Chauffeur__c, Contact_responsable_parc__c, Contact_Chauffeur__r.Name, Contact_Chauffeur__r.Email, Contact_Chauffeur__r.MobilePhone,
+                        Contact_Chauffeur__r.Phone, Contact_responsable_parc__r.Name, Contact_responsable_parc__r.Email, Contact_responsable_parc__r.MobilePhone,
+                        Contact_responsable_parc__r.Phone, Nom_Chauffeur__c, N_Tel_Chauffeur__c, Precision__c, Priority, Ville__c, Code_postal__c, Pays__c, Rue_Lieu__c, Description_incident_client__c,
+                        Account.Tech_SAP_Id__c
+                FROM Case WHERE Id = :caseIds
+        ]);
+
+        List<Intf_WorkOrderSchemaBuilder.WorkOrderMsg> woMessages = new List<Intf_WorkOrderSchemaBuilder.WorkOrderMsg>();
+
+        for (WorkOrder wo : workOrders) {
+            woMessages.add(new Intf_WorkOrderSchemaBuilder.WorkOrderMsg(wo, casesByIds.get(wo.CaseId)));
+        }
+
+        if (!woMessages.isEmpty()) {
+            Intf_WebserviceCalloutWO intfWebserviceCalloutWO = new Intf_WebserviceCalloutWO();
+            intfWebserviceCalloutWO.executeCallout(woMessages);
+        }
+
+
+    }
+
+}
