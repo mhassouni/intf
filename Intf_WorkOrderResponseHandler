@@ -1,0 +1,72 @@
+/**
+ * Created by Michael on 20-03-24.
+ */
+
+public with sharing class Intf_WorkOrderResponseHandler implements Intf_ResponseHandlerInterface {
+
+    private static final String OK_SAP_STATUS = 'S';
+    private static final String ERROR_SAP_STATUS = 'E';
+    private static final String INCOMING_SAP_STATUS = 'I';
+    private static final String TREATMENT_OK = 'Done';
+    private static final String TREATMENT_ERROR = 'Error';
+
+    public void handleResponses(List<Interface_Response__c> newMessages) {
+
+        List<Interface_Response__c> interfaceResponsesToUpdate = new List<Interface_Response__c>();
+        List<WorkOrder> workordersToUpdate = new List<WorkOrder>();
+
+        for (Interface_Response__c interfaceResponse : newMessages) {
+
+            Interface_Response__c intRepToUpdate = new Interface_Response__c(
+                    Id = interfaceResponse.Id
+            );
+
+            switch on interfaceResponse.Status__c {
+                when 'S' {
+                    // Success
+
+                    workordersToUpdate.add(new WorkOrder(
+                            Id = interfaceResponse.CRM_Number__c,
+                            Intf_Sync_Status__c = 'Sync',
+                            Intf_Synchronisation_Message__c = null,
+                            SAP_ID__c = interfaceResponse.ERP_Number__c
+
+                    ));
+
+                    intRepToUpdate.Treatment_Status__c = TREATMENT_OK;
+                }
+                when 'E' {
+                    // Errors
+
+                    workordersToUpdate.add(new WorkOrder(
+                            Id = interfaceResponse.CRM_Number__c,
+                            Intf_Sync_Status__c = 'Error',
+                            Intf_Synchronisation_Message__c = interfaceResponse.Response_Message__c
+                    ));
+
+                    intRepToUpdate.Treatment_Status__c = TREATMENT_OK;
+                }
+                when 'I' {
+                    // Tour de parce et changement de status
+
+                    //TODO here we need to create several workorders or update workorders based on ERP ID only --> !!! for tour de parc
+
+                }
+                when else {
+                    // Code inconnu
+
+                    intRepToUpdate.Treatment_Status__c = TREATMENT_ERROR;
+                    intRepToUpdate.Treatment_Message__c = 'Unknown status code';
+
+                }
+            }
+            interfaceResponsesToUpdate.add(intRepToUpdate);
+
+        }
+
+        update workordersToUpdate;
+        update interfaceResponsesToUpdate;
+
+    }
+
+}
