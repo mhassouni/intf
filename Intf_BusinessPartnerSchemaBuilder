@@ -1,0 +1,223 @@
+/**
+ * Created by Michael on 06-03-24.
+ */
+
+public with sharing class Intf_BusinessPartnerSchemaBuilder {
+
+    private static Account account;
+    private static Contact contact;
+    private static Opportunity opportunity;
+    private static InvolvedStakeholder__c involvedStakeholder;
+    private static SalesAreaData__c salesAreaData;
+
+    private static final String PARTNER_FUNCTION_INVOICE = 'Facturation';
+    private static final String PARTNER_FUNCTION_DELIVERY = 'Livraison';
+    private static final String PARTNER_ROLE_B2C_DEFAULT = 'CRM000';
+    private static final String LANGUAGE_DEFAULT = 'FR';
+    private static final String PARTNER_CLASS_B2B_DEFAULT = '01';
+    private static final String CONTACT_SALUTATION_B2B_DEFAULT = '003';
+
+    public class BusinessPartnerMsg {
+
+        public String messid { get; set; }
+        public String salesforceId { get; set; }
+        public BasicData BasicData;
+        public AdditionnalData AdditionnalData;
+        public FinancialData FinancialData;
+        public ContactInfo ContactInfo;
+        public List<Address> Addresses { get; set; }
+
+        public BusinessPartnerMsg(Opportunity oppy, Account account, InvolvedStakeholder__c involvedStakeholder, SalesAreaData__c salesAreaData) {
+
+            account = account;
+            opportunity = oppy;
+            involvedStakeholder = involvedStakeholder;
+            salesAreaData = salesAreaData;
+
+            this.messid = Intf_GenerallntService.getUMessageId();
+            this.salesforceId = account.Id;
+
+            this.BasicData = getB2BBasicData();
+            this.AdditionnalData = getB2BAdditionnalData();
+            this.FinancialData = getB2BFinancialData();
+            this.ContactInfo = getB2BContactInfo();
+            this.Addresses = getB2BAddresses();
+
+        }
+
+        public BusinessPartnerMsg(Opportunity oppy, Contact contact) {
+
+            account = account;
+            opportunity = oppy;
+            contact = contact;
+
+            this.messid = Intf_GenerallntService.getUMessageId();
+            this.salesforceId = account.Id;
+            this.BasicData = getB2CBasicData();
+            this.Addresses = getB2CAddresses();
+
+        }
+    }
+
+    private static BasicData getB2CBasicData() {
+
+        BasicData basicData = new BasicData();
+
+        basicData.category = 1;
+        basicData.salutation = contact.Salutation;
+        basicData.lastmame = contact.LastName;
+        basicData.firstname = contact.FirstName;
+        basicData.emailAddress = contact.Email;
+        basicData.paymentType = '';
+        basicData.partnerRole = PARTNER_ROLE_B2C_DEFAULT;
+
+        return BasicData;
+
+    }
+
+    private static BasicData getB2BBasicData() {
+
+        BasicData basicData = new BasicData();
+
+        basicData.accountNumber = account.NumeroCompte__c;
+        basicData.category = 2;
+        basicData.grouping = account.CategorieCompte__c;
+        basicData.businessPartnerName = account.NomCommercial__c;
+        basicData.companyType = account.DB_Forme_Juridique_Generale__c;
+        basicData.activityDescr = account.DB_Description_activite__c;
+        basicData.legalEntity = salesAreaData.PFRegion__c;
+        basicData.codeLang = account.LangueTravail__c == null ? LANGUAGE_DEFAULT : account.LangueTravail__c;
+        basicData.emailAddress = account.DB_Email_Contact__c;
+        basicData.partnerRole = involvedStakeholder.Role__c;
+
+        return basicData;
+
+    }
+
+    private static AdditionnalData getB2BAdditionnalData() {
+
+        AdditionnalData additionnalData = new AdditionnalData();
+
+        additionnalData.mainActivity = salesAreaData.BusinessLine__c;
+        additionnalData.partnerClass = PARTNER_CLASS_B2B_DEFAULT;
+
+        return additionnalData;
+    }
+
+    private static FinancialData getB2BFinancialData() {
+
+        FinancialData financialData = new FinancialData();
+
+        financialData.taxType = account.DB_ID_Prefere__c;
+        financialData.taxNumber = account.DB_Valeur_ID_Prefere__c;
+        financialData.salesOrg = salesAreaData.LegalEntityName__c;
+        financialData.currencyCode = account.CurrencyIsoCode;
+        financialData.condPay = 'Transer'; //TODO check With Roméo
+
+        return financialData;
+
+    }
+
+    private static ContactInfo getB2BContactInfo() {
+
+        ContactInfo contactInfo = new ContactInfo();
+        contactInfo.salutation = CONTACT_SALUTATION_B2B_DEFAULT;
+
+        return contactInfo;
+    }
+
+    private static List<Address> getB2BAddresses() {
+
+        List<Address> addresses = new List<Address>();
+
+        Address address = new Address();
+        address.address = account.Ligne1__c;
+        address.line2 = account.Ligne2__c;
+        address.line3 = account.Ligne3__c;
+        address.line4 = account.Ligne4__c;
+        address.city = account.Ville__c;
+        address.zipCode = account.CodePostal__c;
+        address.state = account.Province__c;
+        address.partnerFunction = PARTNER_FUNCTION_INVOICE;
+
+        addresses.add(address);
+
+        return addresses;
+    }
+
+    private static List<Address> getB2CAddresses() {
+
+        List<Address> addresses = new List<Address>();
+
+        Address addressInvoice = new Address();
+        addressInvoice.address = contact.Adresse__c;
+        addressInvoice.city = contact.Ville_Facturation__c;
+        addressInvoice.zipCode = contact.Code_Postal_Facturation__c;
+        addressInvoice.partnerFunction = PARTNER_FUNCTION_INVOICE;
+
+        addresses.add(addressInvoice);
+
+        Address addressDelivery = new Address();
+        addressDelivery.address = contact.Adresse_Livraison__c;
+        addressDelivery.city = contact.Ville_Livraison__c;
+        addressDelivery.zipCode = contact.Code_Postal_Livraison__c;
+        addressDelivery.partnerFunction = PARTNER_FUNCTION_DELIVERY;
+
+        addresses.add(addressDelivery);
+
+        return addresses;
+    }
+
+
+    public class BasicData {
+        public String accountNumber { get; set; }
+        public Integer category { get; set; }
+        public String grouping { get; set; }
+        public String businessPartnerName { get; set; }
+        public String companyType { get; set; }
+        public String activityDescr { get; set; }
+        public String legalEntity { get; set; }
+        public String codeLang { get; set; }
+        public String paymentType { get; set; }
+        public String partnerRole { get; set; }
+        public String emailAddress { get; set; }
+        public String salutation { get; set; }
+        public String lastmame { get; set; }
+        public String firstname { get; set; }
+
+    }
+
+    public class AdditionnalData {
+        public String mainActivity { get; set; }
+        public String partnerClass { get; set; }
+
+    }
+
+    public class ContactInfo {
+        public String salutation { get; set; }
+    }
+
+    public class FinancialData {
+
+        public String taxType { get; set; }
+        public String taxNumber { get; set; }
+        public String salesOrg { get; set; }
+        public String currencyCode { get; set; }
+        public String condPay { get; set; }
+
+    }
+
+    public class Address {
+
+        public String partnerFunction { get; set; }
+        public String city { get; set; }
+        public String zipCode { get; set; }
+        public String address { get; set; }
+        public String country { get; set; }
+        public String line2 { get; set; }
+        public String line3 { get; set; }
+        public String line4 { get; set; }
+        public String state { get; set; }
+
+    }
+}
