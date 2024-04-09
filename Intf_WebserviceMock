@@ -1,0 +1,23 @@
+/**
+ * Created by Michael on 03-01-24.
+ */
+
+global class Intf_WebserviceMock implements HttpCalloutMock {
+    public static Integer status;
+    public static String interfaceToTest;
+
+
+    global HTTPResponse respond(HTTPRequest request) {
+
+        HttpResponse response = new HttpResponse();
+        response.setHeader('Content-Type', 'application/json');
+
+        switch on interfaceToTest {
+            when 'TEST' {
+
+            }
+        }
+
+        return response;
+    }
+}
