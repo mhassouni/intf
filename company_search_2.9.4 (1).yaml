@@ -1,0 +1,992 @@
+openapi: 3.0.1
+x-project-id: Company Search
+info:
+  title: Company Search
+  description: Identify your buyers worldwide and get its companyId.
+  contact:
+    email: api@allianz-trade.com
+    name: Allianz Trade API
+  version: 2.9.4
+servers:
+- url: https://api-services.uat.1placedessaisons.com/search/uatm-v2
+  description: Test
+- url: https://api.allianz-trade.com/search/v2
+  description: Production
+tags:
+- name: matchCriteria
+  description: Match companies by criteria
+- name: searchCriteria
+  description: Search companies by criteria
+paths:
+  /companies/matching:
+    post:
+      tags:
+      - matchCriteria
+      description: Return companies containing at least the desired identifier type
+        matching at least one and the most of the given criteria. Notice that all
+        companies status will be matched and use of extended country feature is not
+        possible.
+      operationId: matchByCriteriaAndProvider
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MatchCriteria'
+      responses:
+        '200':
+          description: Companies list that matches criteria
+          headers:
+            Total-Items:
+              description: Number of companies retrieved
+              style: simple
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchResult'
+        '204':
+          description: No companies found
+        '206':
+          description: Partial content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchResult'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '500':
+          description: Technical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codeSamples:
+      - lang: Shell + Curl
+        source: "curl --request POST \\\n  --url https://api-services.uat.1placedessaisons.com/search/uatm-v2/companies/matching\
+          \ \\\n  --header 'content-type: application/json' \\\n  --data '{\"requestedSize\"\
+          :0,\"companyName\":\"string\",\"streetName\":\"string\",\"streetNumber\"\
+          :\"string\",\"town\":\"string\",\"postalCode\":\"string\",\"postOfficeBox\"\
+          :\"string\",\"subdivisionCode\":\"string\",\"countryCode\":\"st\",\"communicationChannels\"\
+          :[{\"typeCode\":\"EMAIL\",\"value\":\"string\"}],\"companyIdentifiers\"\
+          :[{\"idTypeCode\":\"string\",\"idValue\":\"string\"}],\"minimumScore\":0,\"\
+          companyIdentifierTypeCode\":\"EH\",\"statuses\":[\"ACTIVE\"]}'"
+      - lang: Python + Requests
+        source: "import requests\n\nurl = \"https://api-services.uat.1placedessaisons.com/search/uatm-v2/companies/matching\"\
+          \n\npayload = {\n    \"requestedSize\": 0,\n    \"companyName\": \"string\"\
+          ,\n    \"streetName\": \"string\",\n    \"streetNumber\": \"string\",\n\
+          \    \"town\": \"string\",\n    \"postalCode\": \"string\",\n    \"postOfficeBox\"\
+          : \"string\",\n    \"subdivisionCode\": \"string\",\n    \"countryCode\"\
+          : \"st\",\n    \"communicationChannels\": [\n        {\n            \"typeCode\"\
+          : \"EMAIL\",\n            \"value\": \"string\"\n        }\n    ],\n   \
+          \ \"companyIdentifiers\": [\n        {\n            \"idTypeCode\": \"string\"\
+          ,\n            \"idValue\": \"string\"\n        }\n    ],\n    \"minimumScore\"\
+          : 0,\n    \"companyIdentifierTypeCode\": \"EH\",\n    \"statuses\": [\"\
+          ACTIVE\"]\n}\nheaders = {\"content-type\": \"application/json\"}\n\nresponse\
+          \ = requests.request(\"POST\", url, json=payload, headers=headers)\n\nprint(response.text)"
+      - lang: Node + Request
+        source: "const request = require('request');\n\nconst options = {\n  method:\
+          \ 'POST',\n  url: 'https://api-services.uat.1placedessaisons.com/search/uatm-v2/companies/matching',\n\
+          \  headers: {'content-type': 'application/json'},\n  body: {\n    requestedSize:\
+          \ 0,\n    companyName: 'string',\n    streetName: 'string',\n    streetNumber:\
+          \ 'string',\n    town: 'string',\n    postalCode: 'string',\n    postOfficeBox:\
+          \ 'string',\n    subdivisionCode: 'string',\n    countryCode: 'st',\n  \
+          \  communicationChannels: [{typeCode: 'EMAIL', value: 'string'}],\n    companyIdentifiers:\
+          \ [{idTypeCode: 'string', idValue: 'string'}],\n    minimumScore: 0,\n \
+          \   companyIdentifierTypeCode: 'EH',\n    statuses: ['ACTIVE']\n  },\n \
+          \ json: true\n};\n\nrequest(options, function (error, response, body) {\n\
+          \  if (error) throw new Error(error);\n\n  console.log(body);\n});\n"
+      - lang: Java + Unirest
+        source: "HttpResponse<String> response = Unirest.post(\"https://api-services.uat.1placedessaisons.com/search/uatm-v2/companies/matching\"\
+          )\n  .header(\"content-type\", \"application/json\")\n  .body(\"{\\\"requestedSize\\\
+          \":0,\\\"companyName\\\":\\\"string\\\",\\\"streetName\\\":\\\"string\\\"\
+          ,\\\"streetNumber\\\":\\\"string\\\",\\\"town\\\":\\\"string\\\",\\\"postalCode\\\
+          \":\\\"string\\\",\\\"postOfficeBox\\\":\\\"string\\\",\\\"subdivisionCode\\\
+          \":\\\"string\\\",\\\"countryCode\\\":\\\"st\\\",\\\"communicationChannels\\\
+          \":[{\\\"typeCode\\\":\\\"EMAIL\\\",\\\"value\\\":\\\"string\\\"}],\\\"\
+          companyIdentifiers\\\":[{\\\"idTypeCode\\\":\\\"string\\\",\\\"idValue\\\
+          \":\\\"string\\\"}],\\\"minimumScore\\\":0,\\\"companyIdentifierTypeCode\\\
+          \":\\\"EH\\\",\\\"statuses\\\":[\\\"ACTIVE\\\"]}\")\n  .asString();"
+  /companies/advancedSearch:
+    post:
+      tags:
+      - searchCriteria
+      summary: Return companies with defined criteria
+      description: Search companies with multiple criteria. You can search with local
+        identifiers (idTypeCode + idValue parameters required) or you can search by
+        name (companyName is then required). You can add the other optional criteria
+        to improve your search
+      operationId: searchByCriteria
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchCriteria'
+      responses:
+        '200':
+          description: Companies list that matches criteria
+          headers:
+            Total-Items:
+              description: Number of companies retrieved
+              style: simple
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        '204':
+          description: No companies found
+        '206':
+          description: Partial content
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+        '500':
+          description: Technical error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      x-codeSamples:
+      - lang: Shell + Curl
+        source: "curl --request POST \\\n  --url https://api-services.uat.1placedessaisons.com/search/uatm-v2/companies/advancedSearch\
+          \ \\\n  --header 'content-type: application/json' \\\n  --data '{\"pageSize\"\
+          :0,\"companyName\":\"string\",\"streetName\":\"string\",\"streetNumber\"\
+          :\"string\",\"town\":\"string\",\"postalCode\":\"string\",\"postOfficeBox\"\
+          :\"string\",\"subdivisionCode\":\"string\",\"countryCode\":\"st\",\"communicationChannels\"\
+          :[{\"typeCode\":\"EMAIL\",\"value\":\"string\"}],\"idTypeCode\":\"string\"\
+          ,\"idValue\":\"string\",\"onlyActive\":true,\"statuses\":[\"A\"],\"extendCountrySearch\"\
+          :true}'"
+      - lang: Python + Requests
+        source: "import requests\n\nurl = \"https://api-services.uat.1placedessaisons.com/search/uatm-v2/companies/advancedSearch\"\
+          \n\npayload = {\n    \"pageSize\": 0,\n    \"companyName\": \"string\",\n\
+          \    \"streetName\": \"string\",\n    \"streetNumber\": \"string\",\n  \
+          \  \"town\": \"string\",\n    \"postalCode\": \"string\",\n    \"postOfficeBox\"\
+          : \"string\",\n    \"subdivisionCode\": \"string\",\n    \"countryCode\"\
+          : \"st\",\n    \"communicationChannels\": [\n        {\n            \"typeCode\"\
+          : \"EMAIL\",\n            \"value\": \"string\"\n        }\n    ],\n   \
+          \ \"idTypeCode\": \"string\",\n    \"idValue\": \"string\",\n    \"onlyActive\"\
+          : True,\n    \"statuses\": [\"A\"],\n    \"extendCountrySearch\": True\n\
+          }\nheaders = {\"content-type\": \"application/json\"}\n\nresponse = requests.request(\"\
+          POST\", url, json=payload, headers=headers)\n\nprint(response.text)"
+      - lang: Node + Request
+        source: "const request = require('request');\n\nconst options = {\n  method:\
+          \ 'POST',\n  url: 'https://api-services.uat.1placedessaisons.com/search/uatm-v2/companies/advancedSearch',\n\
+          \  headers: {'content-type': 'application/json'},\n  body: {\n    pageSize:\
+          \ 0,\n    companyName: 'string',\n    streetName: 'string',\n    streetNumber:\
+          \ 'string',\n    town: 'string',\n    postalCode: 'string',\n    postOfficeBox:\
+          \ 'string',\n    subdivisionCode: 'string',\n    countryCode: 'st',\n  \
+          \  communicationChannels: [{typeCode: 'EMAIL', value: 'string'}],\n    idTypeCode:\
+          \ 'string',\n    idValue: 'string',\n    onlyActive: true,\n    statuses:\
+          \ ['A'],\n    extendCountrySearch: true\n  },\n  json: true\n};\n\nrequest(options,\
+          \ function (error, response, body) {\n  if (error) throw new Error(error);\n\
+          \n  console.log(body);\n});\n"
+      - lang: Java + Unirest
+        source: "HttpResponse<String> response = Unirest.post(\"https://api-services.uat.1placedessaisons.com/search/uatm-v2/companies/advancedSearch\"\
+          )\n  .header(\"content-type\", \"application/json\")\n  .body(\"{\\\"pageSize\\\
+          \":0,\\\"companyName\\\":\\\"string\\\",\\\"streetName\\\":\\\"string\\\"\
+          ,\\\"streetNumber\\\":\\\"string\\\",\\\"town\\\":\\\"string\\\",\\\"postalCode\\\
+          \":\\\"string\\\",\\\"postOfficeBox\\\":\\\"string\\\",\\\"subdivisionCode\\\
+          \":\\\"string\\\",\\\"countryCode\\\":\\\"st\\\",\\\"communicationChannels\\\
+          \":[{\\\"typeCode\\\":\\\"EMAIL\\\",\\\"value\\\":\\\"string\\\"}],\\\"\
+          idTypeCode\\\":\\\"string\\\",\\\"idValue\\\":\\\"string\\\",\\\"onlyActive\\\
+          \":true,\\\"statuses\\\":[\\\"A\\\"],\\\"extendCountrySearch\\\":true}\"\
+          )\n  .asString();"
+components:
+  schemas:
+    Address:
+      type: object
+      properties:
+        streetNumber:
+          type: string
+          description: Number of the street
+        streetName:
+          type: string
+          description: Name of the street
+        complementaryStreetName:
+          type: string
+          description: Complementary informations about the street name
+        postOfficeBox:
+          type: string
+          description: Post office box
+        postCodes:
+          type: array
+          description: Postal codes
+          items:
+            $ref: '#/components/schemas/PostCode'
+        town:
+          type: string
+          description: Town or city
+        subdivisionCode:
+          type: string
+          description: State or region
+        countryCode:
+          type: string
+          description: Reference a resource from [reference data API] https://developers.allianz-trade.com/api-catalogue/euler-hermes-reference-data-rest-api
+      description: Companies, branches and private individuals objects contain one
+        address sub-object. Companies and branches can also contain a second address
+        with non-latin characters in the localizedData.
+    Branch:
+      type: object
+      properties:
+        branchId:
+          type: string
+          description: The unique branch identifier
+        companyId:
+          type: string
+          description: The company identifier linked to the branch
+        companyIdentifiers:
+          type: array
+          description: Identifiers of the branch
+          items:
+            $ref: '#/components/schemas/CompanyIdentifier'
+        address:
+          $ref: '#/components/schemas/Address'
+        localizedData:
+          $ref: '#/components/schemas/LocalizedData'
+        legalData:
+          $ref: '#/components/schemas/LegalData'
+        communicationChannels:
+          type: array
+          description: Communication channels of the branch
+          items:
+            $ref: '#/components/schemas/CommunicationChannel'
+        employeesData:
+          $ref: '#/components/schemas/EmployeesData'
+      description: A branch is an establishment of a company in a different location
+        than its headquarter.
+    BranchResult:
+      type: object
+      properties:
+        branch:
+          $ref: '#/components/schemas/Branch'
+        absoluteScore:
+          type: number
+          description: Match rate between request criteria and the fields of a document
+          format: float
+      description: A branch that matches a query
+    CommunicationChannel:
+      required:
+      - typeCode
+      - value
+      type: object
+      properties:
+        typeCode:
+          type: string
+          description: Type of communication channel
+          enum:
+          - EMAIL
+          - CERTIFIED_EMAIL
+          - FAX_NUMBER
+          - PHONE_NUMBER
+          - WEBSITE
+          - FACEBOOK
+        value:
+          type: string
+          description: Value of the communication channel
+      description: A communication channel is a mean to contact a company, branch
+        or a private individual.
+    Company:
+      type: object
+      description: A company is a legal entity.
+      allOf:
+      - $ref: '#/components/schemas/CompanyHeaderQuarter'
+      - type: object
+        properties:
+          branches:
+            type: array
+            description: Branches of the company
+            items:
+              $ref: '#/components/schemas/Branch'
+          privateIndividuals:
+            type: array
+            description: Private individuals of the company
+            items:
+              $ref: '#/components/schemas/PrivateIndividual'
+    CompanyCoreInfo:
+      type: object
+      properties:
+        localizedData:
+          $ref: '#/components/schemas/LocalizedData'
+        communicationChannels:
+          type: array
+          description: Communication channels of the company
+          items:
+            $ref: '#/components/schemas/CommunicationChannel'
+        employeesData:
+          $ref: '#/components/schemas/EmployeesData'
+        financialData:
+          $ref: '#/components/schemas/FinancialData'
+        groupLinks:
+          type: array
+          description: All groups' links this company belongs to
+          items:
+            $ref: '#/components/schemas/GroupLink'
+      description: A company is a legal entity.
+    CompanyHeaderQuarter:
+      type: object
+      description: A company is a legal entity.
+      allOf:
+      - $ref: '#/components/schemas/CompanyCoreInfo'
+      - type: object
+        properties:
+          companyId:
+            type: string
+            description: The unique resource identifier aka Euler Hermes identifier
+          winnerCompanyId:
+            type: string
+            description: The unique resource identifier aka Euler Hermes identifier
+              when the company is a duplicated close one.
+          address:
+            $ref: '#/components/schemas/Address'
+          legalData:
+            $ref: '#/components/schemas/LegalData'
+          companyIdentifiers:
+            type: array
+            description: Company identifiers
+            items:
+              $ref: '#/components/schemas/CompanyIdentifier'
+    CompanyIdentifier:
+      type: object
+      description: Identifiers are unique keys associated to a company, a branch or
+        a private individual to identify them in partners referentials.
+      allOf:
+      - $ref: '#/components/schemas/CompanyIdentifierCoreInfo'
+      - type: object
+        properties:
+          priorityNumber:
+            maximum: 9
+            minimum: 1
+            type: integer
+            description: It helps the user to know which idTypeCode is the most used
+              in the country. PriorityNumber domain values is [1,9]. 1 is the highest
+              priority. The API provides all identifiers
+            format: int32
+          isNationalIdentifier:
+            type: boolean
+            description: it helps the user to know if it is the official identifier
+              of the country
+    CompanyIdentifierCoreInfo:
+      type: object
+      properties:
+        idTypeCode:
+          type: string
+          description: Reference a resource from [reference data API] https://developers.allianz-trade.com/api-catalogue/euler-hermes-reference-data-rest-api
+        idValue:
+          type: string
+          description: the business Identifier Value. The identifier format usually
+            depends on the identifier type
+      description: Identifiers are unique keys associated to a company, a branch or
+        a private individual to identify them in partners referentials.
+    EmployeesData:
+      type: object
+      properties:
+        minNumber:
+          type: integer
+          description: Minimum number of employees
+          format: int64
+        maxNumber:
+          type: integer
+          description: Maximum number of employees
+          format: int64
+      description: Social data associated to companies and branches.
+    FinancialData:
+      type: object
+      properties:
+        shareCapitalAmount:
+          type: number
+          description: Share capital
+        issuedCapitalAmount:
+          type: number
+          description: Issued capital
+        contributionTypeCode:
+          type: string
+          description: "Contribution type code : \n - AU : Other \n - FO : Goods \n\
+            \ - IM : Property"
+          enum:
+          - AU
+          - FO
+          - IM
+        contributionAmount:
+          type: number
+          description: Contribution amount
+        currencyCode:
+          maxLength: 3
+          minLength: 3
+          type: string
+          description: ISO 4217 Currency Code. The currency used for the amounts
+        turnoverAmount:
+          type: number
+          description: Turnover amount
+        turnoverEndDate:
+          type: string
+          description: Turnover end date
+          format: date
+        turnoverTypeCode:
+          type: string
+          description: "Turnover type code: \n - 01 : Real Turnover \n - 02 : Real\
+            \ Group Turnover \n - 03 : Expected Turnover \n - 04 : Expected Group\
+            \ Turnover"
+          enum:
+          - '01'
+          - '02'
+          - '03'
+          - '04'
+      description: Public financial data associated to a company.
+    GroupLink:
+      type: object
+      properties:
+        groupId:
+          type: string
+          description: Group id the company is linked to
+        isGroupHead:
+          type: boolean
+          description: Is the company the head of this group
+      description: A group link let you know with which group a company is linked
+        to and if this company is a group head
+    LegalData:
+      type: object
+      properties:
+        companyName:
+          type: string
+          description: Company name
+        secondaryNames:
+          type: array
+          description: Company secondary names
+          items:
+            $ref: '#/components/schemas/SecondaryName'
+        effectiveDate:
+          type: string
+          description: Date when the company was registered
+          format: date
+        creationDate:
+          type: string
+          description: Date when the company was created
+          format: date
+        businessStartDate:
+          type: string
+          description: Date when the company began her activity
+          format: date
+        companyStatusCode:
+          type: string
+          description: "Status of the company: \n - A: Active \n - P: Provisional\n\
+            \ - C: Closed"
+          enum:
+          - A
+          - P
+          - C
+          - UNKNOWN
+        companyStatusReasonCode:
+          type: string
+          description: Gives a reason associated to the status of the company. See
+            this [documentation](https://jira.eulerhermes.com/browse/IRPAPI-778)
+        companyTypeCode:
+          type: string
+          description: Type code of the third party company (C - Company, P - Partnership,
+            S - SoleTrader, B - PublicBody, O - Other, I - PrivateIndividual, L -
+            LegalEntity)
+          enum:
+          - C
+          - P
+          - S
+          - B
+          - O
+          - I
+          - L
+        legalFormCode:
+          type: string
+          description: Reference a resource from [reference data API] https://developers.allianz-trade.com/api-catalogue/euler-hermes-reference-data-rest-api
+        tradeSectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/TradeSector'
+        languageCode:
+          type: string
+          description: Reference a resource from [reference data API] https://developers.allianz-trade.com/api-catalogue/euler-hermes-reference-data-rest-api
+        isPublicCompany:
+          type: boolean
+          description: it helps the user to know if the company is public
+        isDataProtected:
+          type: boolean
+          description: it helps the user to know if the data is protected
+      description: Set of informations specific to each company, branch and private
+        individual.
+    LocalizedData:
+      type: object
+      properties:
+        alphabetCode:
+          type: string
+          description: Local language code
+        address:
+          $ref: '#/components/schemas/Address'
+        legalData:
+          $ref: '#/components/schemas/LocalizedLegalData'
+        communicationChannels:
+          type: array
+          description: Communication channels
+          items:
+            $ref: '#/components/schemas/CommunicationChannel'
+      description: Sub-object containing the informations associated to the companies,
+        branches and private individuals in non-latin characters.
+    LocalizedLegalData:
+      type: object
+      properties:
+        companyName:
+          type: string
+          description: Company name translated in the local language
+        secondaryNames:
+          type: array
+          description: Secondary names translated in the local language
+          items:
+            $ref: '#/components/schemas/SecondaryName'
+      description: Sub-object containing legalData in non-latin characters.
+    MatchResult:
+      type: object
+      properties:
+        results:
+          type: array
+          description: Companies retrieved from a search
+          items:
+            $ref: '#/components/schemas/MatchedCompany'
+        providerProblems:
+          type: array
+          description: Problems that occurred when calling some providers
+          items:
+            $ref: '#/components/schemas/ProviderProblem'
+        displayedSize:
+          type: integer
+          description: Number of companies retrieved
+          format: int32
+      description: Result of company match
+    MatchedCompany:
+      type: object
+      properties:
+        company:
+          $ref: '#/components/schemas/CompanyHeaderQuarter'
+        branches:
+          type: array
+          description: The branches retrieved from a search
+          items:
+            $ref: '#/components/schemas/BranchResult'
+        privateIndividuals:
+          type: array
+          description: The private individuals retrieved from a search
+          items:
+            $ref: '#/components/schemas/PrivateIndividualResult'
+        absoluteScore:
+          type: number
+          description: Match rate between request criteria and the fields of a document
+          format: float
+        weight:
+          type: integer
+          description: 'Match''s weight depending of the match type for the result:
+
+            - 21 for a national identifier match
+
+            - 13 for a local identifier match
+
+            - 5 for a phone number match
+
+            - 2 for a company name or address match.
+
+            When a result has multiple match type, weights are sum.
+
+            Example: A result matching on phone number and company name have a weight
+            of 7 (5 + 2).'
+          format: int32
+        sources:
+          type: array
+          description: The sources of the company retrieved from a search
+          items:
+            type: string
+            description: The sources of the company retrieved from a search
+            enum:
+            - ES
+            - DNB_CRITERIA
+            - DNB_MATCH
+            - CREFO
+            - ICAP
+        isHeadQuarterMatched:
+          type: boolean
+          description: Is headquarter has matched during the search
+        isBranchMatched:
+          type: boolean
+          description: Branches are search matches
+      description: Result of company match
+    PostCode:
+      type: object
+      properties:
+        postCodeTypeCode:
+          type: string
+          description: Type of the postal code
+          enum:
+          - POSTCODE
+          - POSTCODEFORPOBOX
+          - COMPANYPOSTCODE
+        postCodeValue:
+          type: string
+          description: Postal code value
+      description: Postal codes
+    PrivateIndividual:
+      type: object
+      properties:
+        privateId:
+          type: string
+          description: Private individual unique identifier
+        companyId:
+          type: string
+          description: Company identifier linked to the private individual
+        address:
+          $ref: '#/components/schemas/Address'
+        localizedData:
+          $ref: '#/components/schemas/LocalizedData'
+        communicationChannels:
+          type: array
+          description: Communication channels of the private individual
+          items:
+            $ref: '#/components/schemas/CommunicationChannel'
+      description: A private individual is always associated to a company with type
+        Individual. It is composed of secondaries contact informations (main contact
+        informations are in the company object).
+    PrivateIndividualResult:
+      type: object
+      properties:
+        privateIndividual:
+          $ref: '#/components/schemas/PrivateIndividual'
+        absoluteScore:
+          type: number
+          description: Match rate between request criteria and the fields of a document
+          format: float
+      description: A private individual that matches a query
+    ProviderProblem:
+      type: object
+      properties:
+        cause:
+          type: string
+        violations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViolationModel'
+      description: Problems that occurred when calling some providers
+    SecondaryName:
+      type: object
+      properties:
+        nameTypeCode:
+          type: string
+          description: Type code name of the alternative name
+          enum:
+          - NAMETYPE01
+          - NAMETYPE02
+          - NAMETYPE03
+          - NAMETYPE04
+          - NAMETYPE05
+          - NAMETYPE06
+          - NAMETYPE07
+          - NAMETYPE08
+          - NAMETYPE09
+          - NAMETYPE10
+          - NAMETYPE11
+          - NAMETYPE12
+        alternativeName:
+          type: string
+          description: Alternative name of the company
+      description: Secondary names
+    TradeSector:
+      type: object
+      properties:
+        nomenclatureCode:
+          type: string
+          description: Nomenclature type used for classification of economic activities
+        tradeSectorCode:
+          type: string
+          description: Activity code value
+        isMainTradeSector:
+          type: boolean
+          description: Indicates the user whether or not this activity is the main
+            activity of the company
+      description: Trade sector associated to a company.
+    ViolationModel:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    BadRequestError:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        detail:
+          type: string
+        status:
+          type: integer
+          format: int32
+        violations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ViolationModel'
+      description: Response returned when the request sent is wrong
+    Error:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Name of the encountered error
+        status:
+          type: integer
+          description: HTTP error status code
+          format: int32
+        detail:
+          type: string
+          description: A human-readable message, describing the error
+      description: Response returned when the request sent is wrong
+    MatchCriteria:
+      required:
+      - companyIdentifierTypeCode
+      type: object
+      properties:
+        requestedSize:
+          type: integer
+          description: Maximum number of companies to retrieve
+          format: int32
+        companyName:
+          type: string
+          description: Name of the company to search
+        streetName:
+          type: string
+          description: Name of the street where to find the company
+        streetNumber:
+          type: string
+          description: Number of the street where to search companies. Has to be used
+            with streetName parameter
+        town:
+          type: string
+          description: Name of the town or city where to search companies
+        postalCode:
+          type: string
+          description: Postal code where to search companies
+        postOfficeBox:
+          type: string
+          description: Post Office Box where to search companies
+        subdivisionCode:
+          type: string
+          description: State or region
+        countryCode:
+          maxLength: 2
+          minLength: 2
+          type: string
+          description: Country iso code 2 where to search companies
+        communicationChannels:
+          type: array
+          description: Communication channels of the company
+          items:
+            $ref: '#/components/schemas/CommunicationChannel'
+        companyIdentifiers:
+          type: array
+          description: Company's identifier type to search
+          items:
+            $ref: '#/components/schemas/CompanyIdentifierCoreInfo'
+        minimumScore:
+          type: number
+          description: Minimum score to reach
+          format: float
+        companyIdentifierTypeCode:
+          type: string
+          description: Company's identifier type code to search
+          enum:
+          - EH
+          - DUN
+          - CREFO
+          - ICAP
+          - NONE
+        statuses:
+          type: array
+          description: 'List of company statuses to search. Accepted values are:
+
+            - A for Active status
+
+            - P for Provisional status
+
+            - C for Closed status
+
+            If no status is entered, the default value will be Active'
+          items:
+            type: string
+            enum:
+            - ACTIVE
+            - PROVISIONAL
+            - CLOSED
+            - UNKNOWN
+      description: All criteria can be sent to match a company.
+    SearchResult:
+      type: object
+      properties:
+        results:
+          type: array
+          description: Companies retrieved from a search
+          items:
+            $ref: '#/components/schemas/SearchedCompany'
+        providerProblems:
+          type: array
+          description: Problems that occurred when calling some providers
+          items:
+            $ref: '#/components/schemas/ProviderProblem'
+        displayedSize:
+          type: integer
+          description: Number of companies retrieved
+          format: int32
+        requestedSize:
+          type: integer
+          description: Maximum number of companies requested
+          format: int32
+      description: Result of company search
+    SearchedCompany:
+      type: object
+      properties:
+        company:
+          $ref: '#/components/schemas/Company'
+        score:
+          type: number
+          description: Score representing the pertinence among all returned documents
+          format: float
+        sources:
+          type: array
+          description: The sources of the company retrieved from a search
+          items:
+            type: string
+            description: The sources of the company retrieved from a search
+            enum:
+            - ES
+            - DNB_CRITERIA
+            - DNB_MATCH
+            - CREFO
+            - ICAP
+        isHeadQuarterMatched:
+          type: boolean
+          description: Is headquarter has matched during the search
+        isBranchMatched:
+          type: boolean
+          description: Branches are search matches
+      description: Company result retrieved from a search
+    SearchCriteria:
+      type: object
+      properties:
+        pageSize:
+          type: integer
+          description: Maximum number of companies to retrieve
+          format: int32
+        companyName:
+          type: string
+          description: Name of the company to search. This is a required parameter
+            in case you are not searching with idTypeCode and idValue
+        streetName:
+          type: string
+          description: Name of the street where to find the company
+        streetNumber:
+          type: string
+          description: Number of the street where to search companies. Has to be used
+            with streetName parameter
+        town:
+          type: string
+          description: Name of the town or city where to search companies
+        postalCode:
+          type: string
+          description: Postal code where to search companies
+        postOfficeBox:
+          type: string
+          description: Post Office Box where to search companies
+        subdivisionCode:
+          type: string
+          description: State or region
+        countryCode:
+          maxLength: 2
+          minLength: 2
+          type: string
+          description: Country iso code 2 where to search companies. Required when
+            idTypeCode/idTypeValue are used.
+        communicationChannels:
+          type: array
+          description: Communication channels of the company
+          items:
+            $ref: '#/components/schemas/CommunicationChannel'
+        idTypeCode:
+          type: string
+          description: Company's identifier type to search. Has to be used with idValue
+            parameter
+        idValue:
+          type: string
+          description: Company's identifier value to search. Has to be used with idTypeCode
+            parameter
+        onlyActive:
+          type: boolean
+          description: Set to true to retrieve only active companies (statuses list
+            must be empty to take this field into account)
+          deprecated: true
+        statuses:
+          type: array
+          description: "List of company statuses to search. Accepted values are:\n\
+            - A for Active status\n- P for Provisional status\n- C for Closed status\n\
+            If no status is entered, the 'onlyActive' field determines the status\
+            \ to be used for the search.\nWhen 'onlyActive is true, only active companies\
+            \ will be searched. Otherwise, no filter is applied.\nWhen 'statuses'\
+            \ field contains at least one valid status, then 'onlyActive' flag is\
+            \ ignored.\nAll unknown values for 'statuses' are ignored.\nExamples:\
+            \ \n- 'onlyActive' is set to true and no status is provided. Only active\
+            \ companies will be returned cause 'onlyActive' is true and no status\
+            \ has been provided.\n- 'onlyActive' is set to true and statuses P and\
+            \ C are provided. Only provisional and closed companies will be returned.\n\
+            - 'onlyActive' is set to true and statuses PR and C are provided. Only\
+            \ closed companies will be returned cause 'PR' status is unknown.\n- 'onlyActive'\
+            \ is set to false and statuses A and C are provided. Only active and closed\
+            \ companies will be returned.\n- 'onlyActive' is set to false and no status\
+            \ or only unknown statuses are provided. Then no filter on status will\
+            \ be applied.\n"
+          items:
+            type: string
+            enum:
+            - A
+            - P
+            - C
+            - UNKNOWN
+        extendCountrySearch:
+          type: boolean
+          description: 'Set to true to retrieve companies from associated states,
+            provinces or districts (e.g: If true, a search in France would also retrieve
+            companies in Monaco and DOM-TOM). Here is the actual list of countries
+            with their associated countries when extendCountrySearch is true :
+
+            fr => fr, gf, gp, mc, mq, nc, pf, pm, re, tf, wf, yt
+
+            it => it, sm, va
+
+            by => by, ua
+
+            ch => ch, li
+
+            li => li, ch
+
+            lt => lt, lv
+
+            lv => lv, lt
+
+            ua => ua, by
+
+            ie => ie, gb
+
+            gb => gb, ie'
+      description: criteria of search
