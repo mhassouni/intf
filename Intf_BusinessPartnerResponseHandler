@@ -1,7 +1,0 @@
-/**
- * Created by Michael on 20-03-24.
- */
-
-public with sharing class Intf_BusinessPartnerResponseHandler {
-
-}
