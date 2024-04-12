@@ -1,0 +1,93 @@
+/**
+ * @description       :
+ * @author            : Hicham El Achboura
+ * @group             :
+ * @last modified on  : 21-03-2024
+ * @last modified by  : Hicham El Achboura
+**/
+
+public with sharing class AllianzWebServiceIntegration
+{
+
+	// Method to authenticate a user
+    public static String authenticate(String endpoint, String body, map<String, String> headers) 
+    {
+        // Implement the logic to authenticate the user
+		Intf_NetworkService allianzNetworkService = new Intf_NetworkService();
+    	Intf_RequestInput allianzRequestInput = new Intf_RequestInput(endpoint, 'POST', body, headers);
+		Intf_ServiceResult allianzServiceResult = allianzNetworkService.execute(allianzRequestInput);
+        // Convertir le corps de la réponse JSON en une map
+        Map<String, Object> responseBody = (Map<String, Object>) JSON.deserializeUntyped(allianzServiceResult.body);
+        // Extraire l'access_token du corps de la réponse
+        String accessToken = (String) responseBody.get('access_token');
+        System.debug('allianzServiceResult : '+ accessToken);
+		return accessToken;
+    }
+
+    // Method to look for a company
+    public static String companySearch( String endpoint, map<String, String> body, map<String, String> headers) 
+    {
+        // Implement the logic to get company Infos
+        String companyId;
+        // Build Json Body
+        String body_Json = AllianzWebServiceIntegration_Helper.companySearch_BuildJSON(body.get('companyInfoCountryCode'), body.get('communicationChannelTypeCode'), body.get('communicationChannelValue'), body.get('companyIdentifierIdTypeCode'), body.get('companyIdentifierIdValue'), body.get('companyInfoCompanyIdentifierTypeCode') );
+        Intf_NetworkService allianzNetworkService = new Intf_NetworkService();
+    	Intf_RequestInput allianzRequestInput = new Intf_RequestInput(endpoint, 'POST', body_Json, headers);
+		Intf_ServiceResult allianzServiceResult = allianzNetworkService.execute(allianzRequestInput);
+        System.debug('companySearch Result : ' + allianzServiceResult);
+        
+        // Convertir la réponse JSON en un objet Apex
+        Map<String, Object> jsonResponse = (Map<String, Object>) JSON.deserializeUntyped(allianzServiceResult.body);
+        
+        // Vérifier si la clé "results" existe et qu'elle contient au moins un élément
+        if (jsonResponse.containsKey('results') && jsonResponse.get('results') instanceof List<Object>) 
+        {
+            List<Object> results = (List<Object>) jsonResponse.get('results');
+            
+            // Vérifier s'il y a au moins un élément dans la liste des résultats
+            if (!results.isEmpty()) 
+            {
+                // Récupérer le premier élément de la liste
+                Map<String, Object> firstResult = (Map<String, Object>) results[0];
+                
+                // Vérifier si la clé "company" existe dans le premier résultat
+                if (firstResult.containsKey('company') && firstResult.get('company') instanceof Map<String, Object>) 
+                {
+                    Map<String, Object> company = (Map<String, Object>) firstResult.get('company');
+                    
+                    // Vérifier si la clé "companyId" existe dans les données de l'entreprise
+                    if (company.containsKey('companyId') && company.get('companyId') instanceof String) 
+                    {
+                        companyId = (String) company.get('companyId');
+                        System.debug('Company ID: ' + companyId);
+                    } 
+                    else 
+                    {
+                        System.debug('Company ID non trouvé dans les données de l\'entreprise.');
+                    }
+                } 
+                else 
+                {
+                    System.debug('Clé "company" non trouvée dans le premier résultat.');
+                }
+            } 
+            else 
+            {
+                System.debug('La liste des résultats est vide.');
+            }
+        } 
+        else 
+        {
+            System.debug('Clé "results" non trouvée ou type incorrect.');
+        }
+
+        System.debug('allianzServiceResult : '+ companyId);
+		return companyId;
+    }
+    
+    // Method to retrieve company grade
+    public static void companyGrade(String companyId) 
+    {
+        // Implement the logic to call the Company Grade API
+    }
+}
