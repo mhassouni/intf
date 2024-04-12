@@ -1,0 +1,60 @@
+/**
+ * @description       :
+ * @author            : Hicham El Achboura
+ * @group             :
+ * @last modified on  : 21-03-2024
+ * @last modified by  : Hicham El Achboura
+**/
+
+public with sharing class AllianzWebServiceIntegration_Helper 
+{
+    public static String companySearch_BuildJSON(String companyInfoCountryCode, String communicationChannelTypeCode, String communicationChannelValue, String companyIdentifierIdTypeCode, String companyIdentifierIdValue, String companyInfoCompanyIdentifierTypeCode ) 
+    {
+        // Créer une instance de la classe CompanyInfo
+        CompanyInfo companyInfo = new CompanyInfo();
+        //companyInfo.countryCode = 'fr';
+        companyInfo.countryCode = companyInfoCountryCode;
+        // Ajouter les channels de communication
+        CommunicationChannel communicationChannel = new CommunicationChannel();
+        //communicationChannel.typeCode = 'PHONE_NUMBER';
+        communicationChannel.typeCode = communicationChannelTypeCode;
+        //communicationChannel.value = '03 88 63 91 81';
+        communicationChannel.value = communicationChannelValue;
+        companyInfo.communicationChannels = new List<CommunicationChannel>{communicationChannel};
+        // Ajouter les identifiants de l'entreprise
+        CompanyIdentifier companyIdentifier = new CompanyIdentifier();
+        //companyIdentifier.idTypeCode = 'test';
+        companyIdentifier.idTypeCode = companyIdentifierIdTypeCode;
+        //companyIdentifier.idValue = '1097906';
+        companyIdentifier.idValue = companyIdentifierIdValue;
+        companyInfo.companyIdentifiers = new List<CompanyIdentifier>{companyIdentifier};
+        
+        // Définir la valeur de companyIdentifierTypeCode
+        //companyInfo.companyIdentifierTypeCode = 'EH'; // Définissez la valeur souhaitée
+        companyInfo.companyIdentifierTypeCode = companyInfoCompanyIdentifierTypeCode; // Définissez la valeur souhaitée
+        // Sérialiser l'objet CompanyInfo en JSON
+        String jsonString = JSON.serialize(companyInfo);
+        
+        return jsonString;
+    }
+
+    public class CompanyInfo 
+    {
+        public String countryCode { get; set; }
+        public List<CommunicationChannel> communicationChannels { get; set; }
+        public String companyIdentifierTypeCode { get; set; }
+        public List<CompanyIdentifier> companyIdentifiers { get; set; }
+	}
+
+    public class CommunicationChannel 
+    {
+        public String typeCode { get; set; }
+        public String value { get; set; }
+    }
+    
+    public class CompanyIdentifier 
+    {
+        public String idTypeCode { get; set; }
+        public String idValue { get; set; }
+    }
+}
